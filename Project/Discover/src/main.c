@@ -66,6 +66,7 @@ void main(void)
 		
 	UART2_Init(9600,UART2_WORDLENGTH_8D,UART2_STOPBITS_1,UART2_PARITY_NO,UART2_SYNCMODE_CLOCK_DISABLE,UART2_MODE_TXRX_ENABLE);
 	
+    
 	
   do
   {
@@ -84,17 +85,17 @@ void main(void)
 			//GPIO_WriteHigh(GPIOE, GPIO_PIN_1); //liga led
 			
 			/*
-					if(GPIO_ReadInputPin(GPIOE, GPIO_PIN_2) == 0){ //botão pressionado
+					if(GPIO_ReadInputPin(GPIOE, GPIO_PIN_2) == 0){ //botï¿½o pressionado
 						GPIO_WriteLow(GPIOE, GPIO_PIN_1); //LIGA led
-					} else { //botão solto
+					} else { //botï¿½o solto
 						GPIO_WriteHigh(GPIOE, GPIO_PIN_1); //DESLIGA led
 					}
 			
 							
 					//uint8_t btn_2_value = GPIO_ReadInputPin(GPIOE, GPIO_PIN_3);
-					if(GPIO_ReadInputPin(GPIOE, GPIO_PIN_3) == 0){ //botão pressionado
+					if(GPIO_ReadInputPin(GPIOE, GPIO_PIN_3) == 0){ //botï¿½o pressionado
 						GPIO_WriteLow(GPIOE, GPIO_PIN_0); //LIGA led
-					} else { //botão solto
+					} else { //botï¿½o solto
 						GPIO_WriteHigh(GPIOE, GPIO_PIN_0); //DESLIGA led
 					}
 			*/
@@ -131,17 +132,17 @@ void main(void)
 		*/
 		
 		/*
-		if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_2) == 0){ //botão pressionado
+		if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_2) == 0){ //botï¿½o pressionado
 			GPIO_WriteHigh(GPIOD, GPIO_PIN_0); //liga led
-		} else { //botão solto
+		} else { //botï¿½o solto
 			GPIO_WriteLow(GPIOD, GPIO_PIN_0); //desliga led
 		}
 
 				
 		//uint8_t btn_2_value = GPIO_ReadInputPin(GPIOD, GPIO_PIN_3);
-		if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_3) == 0){ //botão pressionado
+		if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_3) == 0){ //botï¿½o pressionado
 			GPIO_WriteHigh(GPIOD, GPIO_PIN_1); //liga led
-		} else { //botão solto
+		} else { //botï¿½o solto
 			GPIO_WriteLow(GPIOD, GPIO_PIN_1); //desliga led
 		}
 		*/
@@ -176,8 +177,8 @@ void GPIO_Configuration(void)
   GPIO_Init(GPIOE, GPIO_PIN_1, GPIO_MODE_OUT_PP_LOW_FAST); //LED 2
 	
 	
-  GPIO_Init(GPIOE, GPIO_PIN_2, GPIO_MODE_IN_FL_NO_IT); //BOTÃO 1
-  GPIO_Init(GPIOE, GPIO_PIN_3, GPIO_MODE_IN_FL_NO_IT); //BOTÃO 2
+  GPIO_Init(GPIOE, GPIO_PIN_2, GPIO_MODE_IN_FL_NO_IT); //BOTï¿½O 1
+  GPIO_Init(GPIOE, GPIO_PIN_3, GPIO_MODE_IN_FL_NO_IT); //BOTï¿½O 2
 
 }
 
