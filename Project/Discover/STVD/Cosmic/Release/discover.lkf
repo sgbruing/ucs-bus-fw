@@ -60,6 +60,7 @@ Release\stm8_tsl_services.o
 Release\stm8_tsl_singlechannelkey.o
 Release\stm8_tsl_timebase.o
 Release\main.o
+Release\ucs_bus.o
 #<END OBJECT_FILES>
 
 

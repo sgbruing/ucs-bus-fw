@@ -2,598 +2,494 @@
    2                     ; Parser V4.13.3 - 22 May 2025
    3                     ; Generator (Limited) V4.6.5 - 22 May 2025
    4                     ; Optimizer V4.6.5 - 22 May 2025
-  97                     ; 52 void main(void)
-  97                     ; 53 {
-  99                     	switch	.text
- 100  0000               _main:
- 102  0000 5214          	subw	sp,#20
- 103       00000014      OFST:	set	20
- 106                     ; 56   CLK_Configuration();
- 108  0002 cd00cb        	call	_CLK_Configuration
- 110                     ; 59   GPIO_Configuration();
- 112  0005 cd00cf        	call	_GPIO_Configuration
- 114                     ; 61 	LCD_init();  
- 116  0008 cd0173        	call	_LCD_init
- 118                     ; 62     LCD_clear_home(); 
- 120  000b cd0273        	call	_LCD_clear_home
- 122                     ; 64     LCD_goto(3, 0);                              
- 124  000e ae0300        	ldw	x,#768
- 125  0011 cd027f        	call	_LCD_goto
- 127                     ; 65     LCD_putstr("UCS"); 
- 129  0014 ae0008        	ldw	x,#L34
- 130  0017 cd0259        	call	_LCD_putstr
- 132                     ; 67 	UART2_Init(9600,UART2_WORDLENGTH_8D,UART2_STOPBITS_1,UART2_PARITY_NO,UART2_SYNCMODE_CLOCK_DISABLE,UART2_MODE_TXRX_ENABLE);
- 134  001a 4b0c          	push	#12
- 135  001c 4b80          	push	#128
- 136  001e 4b00          	push	#0
- 137  0020 4b00          	push	#0
- 138  0022 4b00          	push	#0
- 139  0024 ae2580        	ldw	x,#9600
- 140  0027 89            	pushw	x
- 141  0028 5f            	clrw	x
- 142  0029 89            	pushw	x
- 143  002a cd0000        	call	_UART2_Init
- 145  002d 5b09          	addw	sp,#9
- 146  002f               L54:
- 147                     ; 73 		unsigned long contTempo = 0xFFFF;
- 149  002f aeffff        	ldw	x,#65535
- 150  0032 1f07          	ldw	(OFST-13,sp),x
- 151  0034 5f            	clrw	x
- 152  0035 1f05          	ldw	(OFST-15,sp),x
- 154                     ; 74 		int cont = 0;	
- 156  0037 1f03          	ldw	(OFST-17,sp),x
- 158                     ; 77 		int i=0;
- 160                     ; 78 		for(i=0; i<10; i++){
- 162  0039 1f09          	ldw	(OFST-11,sp),x
- 164  003b               L15:
- 165                     ; 79 			dadosrx[i] = 0;
- 167  003b 96            	ldw	x,sp
- 168  003c 1c000b        	addw	x,#OFST-9
- 169  003f 1f01          	ldw	(OFST-19,sp),x
- 171  0041 72fb09        	addw	x,(OFST-11,sp)
- 172  0044 7f            	clr	(x)
- 173                     ; 78 		for(i=0; i<10; i++){
- 175  0045 1e09          	ldw	x,(OFST-11,sp)
- 176  0047 5c            	incw	x
- 177  0048 1f09          	ldw	(OFST-11,sp),x
- 181  004a a3000a        	cpw	x,#10
- 182  004d 2fec          	jrslt	L15
- 183  004f               L75:
- 184                     ; 102 			if (UART2_GetFlagStatus(UART2_FLAG_RXNE) == TRUE){
- 186  004f ae0020        	ldw	x,#32
- 187  0052 cd0000        	call	_UART2_GetFlagStatus
- 189  0055 4a            	dec	a
- 190  0056 261a          	jrne	L56
- 191                     ; 103 				dadosrx[cont] = UART2_ReceiveData8(); 
- 193  0058 cd0000        	call	_UART2_ReceiveData8
- 195  005b 96            	ldw	x,sp
- 196  005c 1c000b        	addw	x,#OFST-9
- 197  005f 1f01          	ldw	(OFST-19,sp),x
- 199  0061 72fb03        	addw	x,(OFST-17,sp)
- 200  0064 f7            	ld	(x),a
- 201                     ; 104 				cont++;
- 203  0065 1e03          	ldw	x,(OFST-17,sp)
- 204  0067 5c            	incw	x
- 205  0068 1f03          	ldw	(OFST-17,sp),x
- 207                     ; 105 				contTempo = 0xFFFF;
- 209  006a aeffff        	ldw	x,#65535
- 210  006d 1f07          	ldw	(OFST-13,sp),x
- 211  006f 5f            	clrw	x
- 212  0070 1f05          	ldw	(OFST-15,sp),x
- 214  0072               L56:
- 215                     ; 107 			contTempo--;
- 217  0072 96            	ldw	x,sp
- 218  0073 1c0005        	addw	x,#OFST-15
- 219  0076 a601          	ld	a,#1
- 220  0078 cd0000        	call	c_lgsbc
- 223                     ; 109 		} while(contTempo>0);
- 225  007b 96            	ldw	x,sp
- 226  007c 1c0005        	addw	x,#OFST-15
- 227  007f cd0000        	call	c_lzmp
- 229  0082 26cb          	jrne	L75
- 230                     ; 111 		if (cont>0){
- 232  0084 9c            	rvf	
- 233  0085 1e03          	ldw	x,(OFST-17,sp)
- 234  0087 2da6          	jrsle	L54
- 235                     ; 112 			LCD_clear_home();
- 237  0089 cd0273        	call	_LCD_clear_home
- 239                     ; 113 			LCD_goto(0, 0); 
- 241  008c 5f            	clrw	x
- 242  008d cd027f        	call	_LCD_goto
- 244                     ; 114 			LCD_putstr(dadosrx);
- 246  0090 96            	ldw	x,sp
- 247  0091 1c000b        	addw	x,#OFST-9
- 248  0094 cd0259        	call	_LCD_putstr
- 250                     ; 116 			if(dadosrx[0] == 'a'){
- 252  0097 7b0b          	ld	a,(OFST-9,sp)
- 253  0099 a161          	cp	a,#97
- 254  009b 2604          	jrne	L17
- 255                     ; 117 				GPIO_WriteLow(GPIOE, GPIO_PIN_0); //LIGA led
- 257  009d 4b01          	push	#1
- 260  009f 2006          	jp	LC002
- 261  00a1               L17:
- 262                     ; 118 			} else if(dadosrx[0] == 'b'){
- 264  00a1 a162          	cp	a,#98
- 265  00a3 260a          	jrne	L57
- 266                     ; 119 				GPIO_WriteLow(GPIOE, GPIO_PIN_1); //LIGA led
- 268  00a5 4b02          	push	#2
- 269  00a7               LC002:
- 270  00a7 ae5014        	ldw	x,#20500
- 271  00aa cd0000        	call	_GPIO_WriteLow
- 274  00ad 2018          	jp	LC001
- 275  00af               L57:
- 276                     ; 120 			} else if(dadosrx[0] == 'c'){
- 278  00af a163          	cp	a,#99
- 279  00b1 2703cc002f    	jrne	L54
- 280                     ; 121 				GPIO_WriteHigh(GPIOE, GPIO_PIN_0); //DESLIGA led
- 282  00b6 4b01          	push	#1
- 283  00b8 ae5014        	ldw	x,#20500
- 284  00bb cd0000        	call	_GPIO_WriteHigh
- 286  00be 84            	pop	a
- 287                     ; 122 				GPIO_WriteHigh(GPIOE, GPIO_PIN_1); //DESLIGA led
- 289  00bf 4b02          	push	#2
- 290  00c1 ae5014        	ldw	x,#20500
- 291  00c4 cd0000        	call	_GPIO_WriteHigh
- 293  00c7               LC001:
- 294  00c7 84            	pop	a
- 295  00c8 cc002f        	jra	L54
- 319                     ; 158 void CLK_Configuration(void)
- 319                     ; 159 {
- 320                     	switch	.text
- 321  00cb               _CLK_Configuration:
- 325                     ; 162   CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);
- 327  00cb 4f            	clr	a
- 329                     ; 164 }
- 332  00cc cc0000        	jp	_CLK_HSIPrescalerConfig
- 357                     ; 166 void GPIO_Configuration(void)
- 357                     ; 167 {
- 358                     	switch	.text
- 359  00cf               _GPIO_Configuration:
- 363                     ; 169   GPIO_DeInit(GPIOD);
- 365  00cf ae500f        	ldw	x,#20495
- 366  00d2 cd0000        	call	_GPIO_DeInit
- 368                     ; 170   GPIO_DeInit(GPIOE);
- 370  00d5 ae5014        	ldw	x,#20500
- 371  00d8 cd0000        	call	_GPIO_DeInit
- 373                     ; 173   GPIO_Init(GPIOD, GPIO_PIN_0, GPIO_MODE_OUT_PP_LOW_FAST); //LED ON BOARD
- 375  00db 4be0          	push	#224
- 376  00dd 4b01          	push	#1
- 377  00df ae500f        	ldw	x,#20495
- 378  00e2 cd0000        	call	_GPIO_Init
- 380  00e5 85            	popw	x
- 381                     ; 175   GPIO_Init(GPIOE, GPIO_PIN_0, GPIO_MODE_OUT_PP_LOW_FAST); //LED 1
- 383  00e6 4be0          	push	#224
- 384  00e8 4b01          	push	#1
- 385  00ea ae5014        	ldw	x,#20500
- 386  00ed cd0000        	call	_GPIO_Init
- 388  00f0 85            	popw	x
- 389                     ; 176   GPIO_Init(GPIOE, GPIO_PIN_1, GPIO_MODE_OUT_PP_LOW_FAST); //LED 2
- 391  00f1 4be0          	push	#224
- 392  00f3 4b02          	push	#2
- 393  00f5 ae5014        	ldw	x,#20500
- 394  00f8 cd0000        	call	_GPIO_Init
- 396  00fb 85            	popw	x
- 397                     ; 179   GPIO_Init(GPIOE, GPIO_PIN_2, GPIO_MODE_IN_FL_NO_IT); //BOTÃO 1
- 399  00fc 4b00          	push	#0
- 400  00fe 4b04          	push	#4
- 401  0100 ae5014        	ldw	x,#20500
- 402  0103 cd0000        	call	_GPIO_Init
- 404  0106 85            	popw	x
- 405                     ; 180   GPIO_Init(GPIOE, GPIO_PIN_3, GPIO_MODE_IN_FL_NO_IT); //BOTÃO 2
- 407  0107 4b00          	push	#0
- 408  0109 4b08          	push	#8
- 409  010b ae5014        	ldw	x,#20500
- 410  010e cd0000        	call	_GPIO_Init
- 412  0111 85            	popw	x
- 413                     ; 182 }
- 416  0112 81            	ret	
- 451                     .const:	section	.text
- 452  0000               L011:
- 453  0000 0000ffff      	dc.l	65535
- 454                     ; 184 void LCD_GPIO_init(void)
- 454                     ; 185 {
- 455                     	switch	.text
- 456  0113               _LCD_GPIO_init:
- 458  0113 5204          	subw	sp,#4
- 459       00000004      OFST:	set	4
- 462                     ; 187     GPIO_Init(LCD_PORT, LCD_RS, GPIO_MODE_OUT_PP_HIGH_FAST);
- 464  0115 4bf0          	push	#240
- 465  0117 4b01          	push	#1
- 466  0119 ae5005        	ldw	x,#20485
- 467  011c cd0000        	call	_GPIO_Init
- 469  011f 85            	popw	x
- 470                     ; 188     GPIO_Init(LCD_PORT, LCD_EN, GPIO_MODE_OUT_PP_HIGH_FAST);
- 472  0120 4bf0          	push	#240
- 473  0122 4b02          	push	#2
- 474  0124 ae5005        	ldw	x,#20485
- 475  0127 cd0000        	call	_GPIO_Init
- 477  012a 85            	popw	x
- 478                     ; 189     GPIO_Init(LCD_PORT, LCD_DB4, GPIO_MODE_OUT_PP_HIGH_FAST);
- 480  012b 4bf0          	push	#240
- 481  012d 4b04          	push	#4
- 482  012f ae5005        	ldw	x,#20485
- 483  0132 cd0000        	call	_GPIO_Init
- 485  0135 85            	popw	x
- 486                     ; 190     GPIO_Init(LCD_PORT, LCD_DB5, GPIO_MODE_OUT_PP_HIGH_FAST);
- 488  0136 4bf0          	push	#240
- 489  0138 4b08          	push	#8
- 490  013a ae5005        	ldw	x,#20485
- 491  013d cd0000        	call	_GPIO_Init
- 493  0140 85            	popw	x
- 494                     ; 191     GPIO_Init(LCD_PORT, LCD_DB6, GPIO_MODE_OUT_PP_HIGH_FAST);
- 496  0141 4bf0          	push	#240
- 497  0143 4b10          	push	#16
- 498  0145 ae5005        	ldw	x,#20485
- 499  0148 cd0000        	call	_GPIO_Init
- 501  014b 85            	popw	x
- 502                     ; 192     GPIO_Init(LCD_PORT, LCD_DB7, GPIO_MODE_OUT_PP_HIGH_FAST);
- 504  014c 4bf0          	push	#240
- 505  014e 4b20          	push	#32
- 506  0150 ae5005        	ldw	x,#20485
- 507  0153 cd0000        	call	_GPIO_Init
- 509  0156 85            	popw	x
- 510                     ; 194 	for (Tempo_Aux=0;Tempo_Aux<0xFFFF;Tempo_Aux++) continue;
- 512  0157 5f            	clrw	x
- 513  0158 1f03          	ldw	(OFST-1,sp),x
- 514  015a 1f01          	ldw	(OFST-3,sp),x
- 516  015c               L341:
- 519  015c 96            	ldw	x,sp
- 520  015d 5c            	incw	x
- 521  015e a601          	ld	a,#1
- 522  0160 cd0000        	call	c_lgadc
- 527  0163 96            	ldw	x,sp
- 528  0164 5c            	incw	x
- 529  0165 cd0000        	call	c_ltor
- 531  0168 ae0000        	ldw	x,#L011
- 532  016b cd0000        	call	c_lcmp
- 534  016e 25ec          	jrult	L341
- 535                     ; 195 }
- 538  0170 5b04          	addw	sp,#4
- 539  0172 81            	ret	
- 567                     ; 197 void LCD_init(void)
- 567                     ; 198 {                                     
- 568                     	switch	.text
- 569  0173               _LCD_init:
- 573                     ; 199      LCD_GPIO_init();    
- 575  0173 ad9e          	call	_LCD_GPIO_init
- 577                     ; 200     toggle_EN_pin();
- 579  0175 cd0294        	call	_toggle_EN_pin
- 581                     ; 202     GPIO_WriteLow(LCD_PORT, LCD_RS);            
- 583  0178 4b01          	push	#1
- 584  017a ae5005        	ldw	x,#20485
- 585  017d cd0000        	call	_GPIO_WriteLow
- 587  0180 84            	pop	a
- 588                     ; 203     GPIO_WriteLow(LCD_PORT, LCD_DB7);   
- 590  0181 ad2c          	call	LC003
- 591                     ; 206     GPIO_WriteHigh(LCD_PORT, LCD_DB4);                      
- 593  0183 ad46          	call	LC004
- 595                     ; 209     GPIO_WriteLow(LCD_PORT, LCD_DB7);   
- 597  0185 ad28          	call	LC003
- 598                     ; 212     GPIO_WriteHigh(LCD_PORT, LCD_DB4);  
- 600  0187 ad42          	call	LC004
- 602                     ; 215     GPIO_WriteLow(LCD_PORT, LCD_DB7);   
- 604  0189 ad24          	call	LC003
- 605                     ; 218     GPIO_WriteHigh(LCD_PORT, LCD_DB4);  
- 607  018b ad3e          	call	LC004
- 609                     ; 221     GPIO_WriteLow(LCD_PORT, LCD_DB7);   
- 611  018d ad20          	call	LC003
- 612                     ; 224     GPIO_WriteLow(LCD_PORT, LCD_DB4);  
- 614  018f 4b04          	push	#4
- 615  0191 ae5005        	ldw	x,#20485
- 616  0194 cd0000        	call	_GPIO_WriteLow
- 618  0197 84            	pop	a
- 619                     ; 225     toggle_EN_pin();
- 621  0198 cd0294        	call	_toggle_EN_pin
- 623                     ; 227     LCD_send((_4_pin_interface | _2_row_display | _5x7_dots), CMD);
- 625  019b ae2800        	ldw	x,#10240
- 626  019e ad37          	call	_LCD_send
- 628                     ; 228     LCD_send((display_on | cursor_off | blink_off), CMD); 
- 630  01a0 ae0c00        	ldw	x,#3072
- 631  01a3 ad32          	call	_LCD_send
- 633                     ; 229     LCD_send(clear_display, CMD);         
- 635  01a5 ae0100        	ldw	x,#256
- 636  01a8 ad2d          	call	_LCD_send
- 638                     ; 230     LCD_send((cursor_direction_inc | display_no_shift), CMD);
- 640  01aa ae0600        	ldw	x,#1536
- 642                     ; 231 }   
- 645  01ad 2028          	jp	_LCD_send
- 646  01af               LC003:
- 647  01af 4b20          	push	#32
- 648  01b1 ae5005        	ldw	x,#20485
- 649  01b4 cd0000        	call	_GPIO_WriteLow
- 651  01b7 84            	pop	a
- 652                     ; 204     GPIO_WriteLow(LCD_PORT, LCD_DB6);   
- 654  01b8 4b10          	push	#16
- 655  01ba ae5005        	ldw	x,#20485
- 656  01bd cd0000        	call	_GPIO_WriteLow
- 658  01c0 84            	pop	a
- 659                     ; 205     GPIO_WriteHigh(LCD_PORT, LCD_DB5);   
- 661  01c1 4b08          	push	#8
- 662  01c3 ae5005        	ldw	x,#20485
- 663  01c6 cd0000        	call	_GPIO_WriteHigh
- 665  01c9 84            	pop	a
- 666  01ca 81            	ret	
- 667  01cb               LC004:
- 668  01cb 4b04          	push	#4
- 669  01cd ae5005        	ldw	x,#20485
- 670  01d0 cd0000        	call	_GPIO_WriteHigh
- 672  01d3 84            	pop	a
- 673                     ; 219     toggle_EN_pin();                  
- 675  01d4 cc0294        	jp	_toggle_EN_pin
- 721                     ; 234 void LCD_send(unsigned char value, unsigned char mode)
- 721                     ; 235 {                               
- 722                     	switch	.text
- 723  01d7               _LCD_send:
- 725  01d7 89            	pushw	x
- 726       00000000      OFST:	set	0
- 729                     ; 236     switch(mode)
- 731  01d8 9f            	ld	a,xl
- 733                     ; 246               break;
- 734  01d9 4d            	tnz	a
- 735  01da 270d          	jreq	L161
- 736  01dc 4a            	dec	a
- 737  01dd 2613          	jrne	L702
- 738                     ; 240               GPIO_WriteHigh(LCD_PORT, LCD_RS);   
- 740  01df 4b01          	push	#1
- 741  01e1 ae5005        	ldw	x,#20485
- 742  01e4 cd0000        	call	_GPIO_WriteHigh
- 744                     ; 241               break;
- 746  01e7 2008          	jp	LC005
- 747  01e9               L161:
- 748                     ; 245               GPIO_WriteLow(LCD_PORT, LCD_RS);   
- 750  01e9 4b01          	push	#1
- 751  01eb ae5005        	ldw	x,#20485
- 752  01ee cd0000        	call	_GPIO_WriteLow
- 754  01f1               LC005:
- 755  01f1 84            	pop	a
- 756                     ; 246               break;
- 758  01f2               L702:
- 759                     ; 250        LCD_4bit_send(value);
- 761  01f2 7b01          	ld	a,(OFST+1,sp)
- 762  01f4 ad02          	call	_LCD_4bit_send
- 764                     ; 251 }  
- 767  01f6 85            	popw	x
- 768  01f7 81            	ret	
- 804                     ; 254 void LCD_4bit_send(unsigned char lcd_data)       
- 804                     ; 255 {
- 805                     	switch	.text
- 806  01f8               _LCD_4bit_send:
- 808  01f8 88            	push	a
- 809       00000000      OFST:	set	0
- 812                     ; 256     toggle_io(lcd_data, 7, LCD_DB7);
- 814  01f9 4b20          	push	#32
- 815  01fb ae0007        	ldw	x,#7
- 816  01fe 95            	ld	xh,a
- 817  01ff cd02c3        	call	_toggle_io
- 819  0202 84            	pop	a
- 820                     ; 257     toggle_io(lcd_data, 6, LCD_DB6);
- 822  0203 4b10          	push	#16
- 823  0205 7b02          	ld	a,(OFST+2,sp)
- 824  0207 ae0006        	ldw	x,#6
- 825  020a 95            	ld	xh,a
- 826  020b cd02c3        	call	_toggle_io
- 828  020e 84            	pop	a
- 829                     ; 258     toggle_io(lcd_data, 5, LCD_DB5);
- 831  020f 4b08          	push	#8
- 832  0211 7b02          	ld	a,(OFST+2,sp)
- 833  0213 ae0005        	ldw	x,#5
- 834  0216 95            	ld	xh,a
- 835  0217 cd02c3        	call	_toggle_io
- 837  021a 84            	pop	a
- 838                     ; 259     toggle_io(lcd_data, 4, LCD_DB4);
- 840  021b 4b04          	push	#4
- 841  021d 7b02          	ld	a,(OFST+2,sp)
- 842  021f ae0004        	ldw	x,#4
- 843  0222 95            	ld	xh,a
- 844  0223 cd02c3        	call	_toggle_io
- 846  0226 84            	pop	a
- 847                     ; 260     toggle_EN_pin();
- 849  0227 ad6b          	call	_toggle_EN_pin
- 851                     ; 261     toggle_io(lcd_data, 3, LCD_DB7);
- 853  0229 4b20          	push	#32
- 854  022b 7b02          	ld	a,(OFST+2,sp)
- 855  022d ae0003        	ldw	x,#3
- 856  0230 95            	ld	xh,a
- 857  0231 cd02c3        	call	_toggle_io
- 859  0234 84            	pop	a
- 860                     ; 262     toggle_io(lcd_data, 2, LCD_DB6);
- 862  0235 4b10          	push	#16
- 863  0237 7b02          	ld	a,(OFST+2,sp)
- 864  0239 ae0002        	ldw	x,#2
- 865  023c 95            	ld	xh,a
- 866  023d cd02c3        	call	_toggle_io
- 868  0240 84            	pop	a
- 869                     ; 263     toggle_io(lcd_data, 1, LCD_DB5);
- 871  0241 4b08          	push	#8
- 872  0243 7b02          	ld	a,(OFST+2,sp)
- 873  0245 ae0001        	ldw	x,#1
- 874  0248 95            	ld	xh,a
- 875  0249 ad78          	call	_toggle_io
- 877  024b 84            	pop	a
- 878                     ; 264     toggle_io(lcd_data, 0, LCD_DB4);
- 880  024c 4b04          	push	#4
- 881  024e 7b02          	ld	a,(OFST+2,sp)
- 882  0250 5f            	clrw	x
- 883  0251 95            	ld	xh,a
- 884  0252 ad6f          	call	_toggle_io
- 886  0254 84            	pop	a
- 887                     ; 265     toggle_EN_pin();
- 889  0255 ad3d          	call	_toggle_EN_pin
- 891                     ; 266 }  
- 894  0257 84            	pop	a
- 895  0258 81            	ret	
- 931                     ; 269 void LCD_putstr(char *lcd_string)
- 931                     ; 270 {
- 932                     	switch	.text
- 933  0259               _LCD_putstr:
- 935  0259 89            	pushw	x
- 936       00000000      OFST:	set	0
- 939  025a f6            	ld	a,(x)
- 940  025b               L542:
- 941                     ; 273         LCD_send(*lcd_string++, DAT);
- 943  025b 5c            	incw	x
- 944  025c 1f01          	ldw	(OFST+1,sp),x
- 945  025e ae0001        	ldw	x,#1
- 946  0261 95            	ld	xh,a
- 947  0262 cd01d7        	call	_LCD_send
- 949                     ; 274     }while(*lcd_string != '\0');
- 951  0265 1e01          	ldw	x,(OFST+1,sp)
- 952  0267 f6            	ld	a,(x)
- 953  0268 26f1          	jrne	L542
- 954                     ; 275 }
- 957  026a 85            	popw	x
- 958  026b 81            	ret	
- 993                     ; 277 void LCD_putchar(char char_data)
- 993                     ; 278 {
- 994                     	switch	.text
- 995  026c               _LCD_putchar:
- 999                     ; 279     LCD_send(char_data, DAT);
-1001  026c ae0001        	ldw	x,#1
-1002  026f 95            	ld	xh,a
-1004                     ; 280 }
-1007  0270 cc01d7        	jp	_LCD_send
-1031                     ; 282 void LCD_clear_home(void)
-1031                     ; 283 {
-1032                     	switch	.text
-1033  0273               _LCD_clear_home:
-1037                     ; 284     LCD_send(clear_display, CMD);
-1039  0273 ae0100        	ldw	x,#256
-1040  0276 cd01d7        	call	_LCD_send
-1042                     ; 285     LCD_send(goto_home, CMD);
-1044  0279 ae0200        	ldw	x,#512
-1046                     ; 286 }
-1049  027c cc01d7        	jp	_LCD_send
-1093                     ; 288 void LCD_goto(unsigned char  x_pos, unsigned char  y_pos)
-1093                     ; 289 {                                                   
-1094                     	switch	.text
-1095  027f               _LCD_goto:
-1097  027f 89            	pushw	x
-1098       00000000      OFST:	set	0
-1101                     ; 290     if(y_pos == 0)    
-1103  0280 9f            	ld	a,xl
-1104  0281 4d            	tnz	a
-1105  0282 2605          	jrne	L323
-1106                     ; 292         LCD_send((0x80 | x_pos), CMD);
-1108  0284 9e            	ld	a,xh
-1109  0285 aa80          	or	a,#128
-1112  0287 2004          	jra	L523
-1113  0289               L323:
-1114                     ; 296         LCD_send((0x80 | 0x40 | x_pos), CMD); 
-1116  0289 7b01          	ld	a,(OFST+1,sp)
-1117  028b aac0          	or	a,#192
-1119  028d               L523:
-1120  028d 5f            	clrw	x
-1121  028e 95            	ld	xh,a
-1122  028f cd01d7        	call	_LCD_send
-1123                     ; 298 }
-1126  0292 85            	popw	x
-1127  0293 81            	ret	
-1163                     	switch	.const
-1164  0004               L072:
-1165  0004 000005ff      	dc.l	1535
-1166                     ; 300 void toggle_EN_pin(void)
-1166                     ; 301 {
-1167                     	switch	.text
-1168  0294               _toggle_EN_pin:
-1170  0294 5204          	subw	sp,#4
-1171       00000004      OFST:	set	4
-1174                     ; 303     GPIO_WriteHigh(LCD_PORT, LCD_EN);    
-1176  0296 4b02          	push	#2
-1177  0298 ae5005        	ldw	x,#20485
-1178  029b cd0000        	call	_GPIO_WriteHigh
-1180  029e 5f            	clrw	x
-1181  029f 84            	pop	a
-1182                     ; 305 		for (Tempo_Aux=0;Tempo_Aux<0x05FF;Tempo_Aux++) continue;
-1184  02a0 1f03          	ldw	(OFST-1,sp),x
-1185  02a2 1f01          	ldw	(OFST-3,sp),x
-1187  02a4               L743:
-1190  02a4 96            	ldw	x,sp
-1191  02a5 5c            	incw	x
-1192  02a6 a601          	ld	a,#1
-1193  02a8 cd0000        	call	c_lgadc
-1198  02ab 96            	ldw	x,sp
-1199  02ac 5c            	incw	x
-1200  02ad cd0000        	call	c_ltor
-1202  02b0 ae0004        	ldw	x,#L072
-1203  02b3 cd0000        	call	c_lcmp
-1205  02b6 25ec          	jrult	L743
-1206                     ; 306     GPIO_WriteLow(LCD_PORT,LCD_EN);   
-1208  02b8 4b02          	push	#2
-1209  02ba ae5005        	ldw	x,#20485
-1210  02bd cd0000        	call	_GPIO_WriteLow
-1212  02c0 5b05          	addw	sp,#5
-1213                     ; 307 }
-1216  02c2 81            	ret	
-1300                     ; 309 void toggle_io(unsigned char lcd_data, unsigned char bit_pos, unsigned char pin_num)
-1300                     ; 310 {
-1301                     	switch	.text
-1302  02c3               _toggle_io:
-1304  02c3 89            	pushw	x
-1305  02c4 88            	push	a
-1306       00000001      OFST:	set	1
-1309                     ; 311     bool temp = FALSE;
-1311                     ; 313     temp = (0x01 & (lcd_data >> bit_pos));  
-1313  02c5 9f            	ld	a,xl
-1314  02c6 5f            	clrw	x
-1315  02c7 97            	ld	xl,a
-1316  02c8 7b02          	ld	a,(OFST+1,sp)
-1317  02ca 5d            	tnzw	x
-1318  02cb 2704          	jreq	L672
-1319  02cd               L003:
-1320  02cd 44            	srl	a
-1321  02ce 5a            	decw	x
-1322  02cf 26fc          	jrne	L003
-1323  02d1               L672:
-1324  02d1 a401          	and	a,#1
-1325  02d3 6b01          	ld	(OFST+0,sp),a
-1327                     ; 315     switch(temp)
-1329  02d5 4a            	dec	a
-1330  02d6 260b          	jrne	L553
-1333                     ; 319             GPIO_WriteHigh(LCD_PORT, pin_num);   
-1335  02d8 7b06          	ld	a,(OFST+5,sp)
-1336  02da 88            	push	a
-1337  02db ae5005        	ldw	x,#20485
-1338  02de cd0000        	call	_GPIO_WriteHigh
-1340                     ; 320             break;
-1342  02e1 2009          	jra	L324
-1343  02e3               L553:
-1344                     ; 325             GPIO_WriteLow(LCD_PORT, pin_num);   
-1346  02e3 7b06          	ld	a,(OFST+5,sp)
-1347  02e5 88            	push	a
-1348  02e6 ae5005        	ldw	x,#20485
-1349  02e9 cd0000        	call	_GPIO_WriteLow
-1351                     ; 326             break;
-1352  02ec               L324:
-1353  02ec 5b04          	addw	sp,#4
-1354                     ; 329 }
-1357  02ee 81            	ret	
-1370                     	xdef	_main
-1371                     	xdef	_toggle_io
-1372                     	xdef	_toggle_EN_pin
-1373                     	xdef	_LCD_goto
-1374                     	xdef	_LCD_clear_home
-1375                     	xdef	_LCD_putchar
-1376                     	xdef	_LCD_putstr
-1377                     	xdef	_LCD_4bit_send
-1378                     	xdef	_LCD_send
-1379                     	xdef	_LCD_init
-1380                     	xdef	_LCD_GPIO_init
-1381                     	xdef	_GPIO_Configuration
-1382                     	xdef	_CLK_Configuration
-1383                     	xref	_UART2_GetFlagStatus
-1384                     	xref	_UART2_ReceiveData8
-1385                     	xref	_UART2_Init
-1386                     	xref	_GPIO_WriteLow
-1387                     	xref	_GPIO_WriteHigh
-1388                     	xref	_GPIO_Init
-1389                     	xref	_GPIO_DeInit
-1390                     	xref	_CLK_HSIPrescalerConfig
-1391                     	switch	.const
-1392  0008               L34:
-1393  0008 55435300      	dc.b	"UCS",0
-1413                     	xref	c_lcmp
-1414                     	xref	c_ltor
-1415                     	xref	c_lgadc
-1416                     	xref	c_lzmp
-1417                     	xref	c_lgsbc
-1418                     	end
+  55                     ; 53 void main(void)
+  55                     ; 54 {
+  57                     	switch	.text
+  58  0000               _main:
+  62                     ; 57     CLK_Configuration();
+  64  0000 ad2e          	call	_CLK_Configuration
+  66                     ; 60     GPIO_Configuration();
+  68  0002 ad30          	call	_GPIO_Configuration
+  70                     ; 62     LCD_init();  
+  72  0004 cd00d8        	call	_LCD_init
+  74                     ; 63     LCD_clear_home(); 
+  76  0007 cd01d8        	call	_LCD_clear_home
+  78                     ; 65     LCD_goto(3, 0);                              
+  80  000a ae0300        	ldw	x,#768
+  81  000d cd01e4        	call	_LCD_goto
+  83                     ; 66     LCD_putstr("UCS"); 
+  85  0010 ae0008        	ldw	x,#L12
+  86  0013 cd01be        	call	_LCD_putstr
+  88                     ; 68 	UART2_Init(9600,UART2_WORDLENGTH_8D,UART2_STOPBITS_1,UART2_PARITY_NO,UART2_SYNCMODE_CLOCK_DISABLE,UART2_MODE_TXRX_ENABLE);
+  90  0016 4b0c          	push	#12
+  91  0018 4b80          	push	#128
+  92  001a 4b00          	push	#0
+  93  001c 4b00          	push	#0
+  94  001e 4b00          	push	#0
+  95  0020 ae2580        	ldw	x,#9600
+  96  0023 89            	pushw	x
+  97  0024 5f            	clrw	x
+  98  0025 89            	pushw	x
+  99  0026 cd0000        	call	_UART2_Init
+ 101  0029 5b09          	addw	sp,#9
+ 102  002b               L32:
+ 103                     ; 73         UCS_Listener();
+ 105  002b cd0000        	call	_UCS_Listener
+ 108  002e 20fb          	jra	L32
+ 132                     ; 94 void CLK_Configuration(void)
+ 132                     ; 95 {
+ 133                     	switch	.text
+ 134  0030               _CLK_Configuration:
+ 138                     ; 98   CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);
+ 140  0030 4f            	clr	a
+ 142                     ; 100 }
+ 145  0031 cc0000        	jp	_CLK_HSIPrescalerConfig
+ 170                     ; 102 void GPIO_Configuration(void)
+ 170                     ; 103 {
+ 171                     	switch	.text
+ 172  0034               _GPIO_Configuration:
+ 176                     ; 105   GPIO_DeInit(GPIOD);
+ 178  0034 ae500f        	ldw	x,#20495
+ 179  0037 cd0000        	call	_GPIO_DeInit
+ 181                     ; 106   GPIO_DeInit(GPIOE);
+ 183  003a ae5014        	ldw	x,#20500
+ 184  003d cd0000        	call	_GPIO_DeInit
+ 186                     ; 109   GPIO_Init(GPIOD, GPIO_PIN_0, GPIO_MODE_OUT_PP_LOW_FAST); //LED ON BOARD
+ 188  0040 4be0          	push	#224
+ 189  0042 4b01          	push	#1
+ 190  0044 ae500f        	ldw	x,#20495
+ 191  0047 cd0000        	call	_GPIO_Init
+ 193  004a 85            	popw	x
+ 194                     ; 111   GPIO_Init(GPIOE, GPIO_PIN_0, GPIO_MODE_OUT_PP_LOW_FAST); //LED 1
+ 196  004b 4be0          	push	#224
+ 197  004d 4b01          	push	#1
+ 198  004f ae5014        	ldw	x,#20500
+ 199  0052 cd0000        	call	_GPIO_Init
+ 201  0055 85            	popw	x
+ 202                     ; 112   GPIO_Init(GPIOE, GPIO_PIN_1, GPIO_MODE_OUT_PP_LOW_FAST); //LED 2
+ 204  0056 4be0          	push	#224
+ 205  0058 4b02          	push	#2
+ 206  005a ae5014        	ldw	x,#20500
+ 207  005d cd0000        	call	_GPIO_Init
+ 209  0060 85            	popw	x
+ 210                     ; 115   GPIO_Init(GPIOE, GPIO_PIN_2, GPIO_MODE_IN_FL_NO_IT); //BOTï¿½O 1
+ 212  0061 4b00          	push	#0
+ 213  0063 4b04          	push	#4
+ 214  0065 ae5014        	ldw	x,#20500
+ 215  0068 cd0000        	call	_GPIO_Init
+ 217  006b 85            	popw	x
+ 218                     ; 116   GPIO_Init(GPIOE, GPIO_PIN_3, GPIO_MODE_IN_FL_NO_IT); //BOTï¿½O 2
+ 220  006c 4b00          	push	#0
+ 221  006e 4b08          	push	#8
+ 222  0070 ae5014        	ldw	x,#20500
+ 223  0073 cd0000        	call	_GPIO_Init
+ 225  0076 85            	popw	x
+ 226                     ; 118 }
+ 229  0077 81            	ret	
+ 264                     .const:	section	.text
+ 265  0000               L07:
+ 266  0000 0000ffff      	dc.l	65535
+ 267                     ; 120 void LCD_GPIO_init(void)
+ 267                     ; 121 {
+ 268                     	switch	.text
+ 269  0078               _LCD_GPIO_init:
+ 271  0078 5204          	subw	sp,#4
+ 272       00000004      OFST:	set	4
+ 275                     ; 123     GPIO_Init(LCD_PORT, LCD_RS, GPIO_MODE_OUT_PP_HIGH_FAST);
+ 277  007a 4bf0          	push	#240
+ 278  007c 4b01          	push	#1
+ 279  007e ae5005        	ldw	x,#20485
+ 280  0081 cd0000        	call	_GPIO_Init
+ 282  0084 85            	popw	x
+ 283                     ; 124     GPIO_Init(LCD_PORT, LCD_EN, GPIO_MODE_OUT_PP_HIGH_FAST);
+ 285  0085 4bf0          	push	#240
+ 286  0087 4b02          	push	#2
+ 287  0089 ae5005        	ldw	x,#20485
+ 288  008c cd0000        	call	_GPIO_Init
+ 290  008f 85            	popw	x
+ 291                     ; 125     GPIO_Init(LCD_PORT, LCD_DB4, GPIO_MODE_OUT_PP_HIGH_FAST);
+ 293  0090 4bf0          	push	#240
+ 294  0092 4b04          	push	#4
+ 295  0094 ae5005        	ldw	x,#20485
+ 296  0097 cd0000        	call	_GPIO_Init
+ 298  009a 85            	popw	x
+ 299                     ; 126     GPIO_Init(LCD_PORT, LCD_DB5, GPIO_MODE_OUT_PP_HIGH_FAST);
+ 301  009b 4bf0          	push	#240
+ 302  009d 4b08          	push	#8
+ 303  009f ae5005        	ldw	x,#20485
+ 304  00a2 cd0000        	call	_GPIO_Init
+ 306  00a5 85            	popw	x
+ 307                     ; 127     GPIO_Init(LCD_PORT, LCD_DB6, GPIO_MODE_OUT_PP_HIGH_FAST);
+ 309  00a6 4bf0          	push	#240
+ 310  00a8 4b10          	push	#16
+ 311  00aa ae5005        	ldw	x,#20485
+ 312  00ad cd0000        	call	_GPIO_Init
+ 314  00b0 85            	popw	x
+ 315                     ; 128     GPIO_Init(LCD_PORT, LCD_DB7, GPIO_MODE_OUT_PP_HIGH_FAST);
+ 317  00b1 4bf0          	push	#240
+ 318  00b3 4b20          	push	#32
+ 319  00b5 ae5005        	ldw	x,#20485
+ 320  00b8 cd0000        	call	_GPIO_Init
+ 322  00bb 85            	popw	x
+ 323                     ; 130 	for (Tempo_Aux=0;Tempo_Aux<0xFFFF;Tempo_Aux++) continue;
+ 325  00bc 5f            	clrw	x
+ 326  00bd 1f03          	ldw	(OFST-1,sp),x
+ 327  00bf 1f01          	ldw	(OFST-3,sp),x
+ 329  00c1               L76:
+ 332  00c1 96            	ldw	x,sp
+ 333  00c2 5c            	incw	x
+ 334  00c3 a601          	ld	a,#1
+ 335  00c5 cd0000        	call	c_lgadc
+ 340  00c8 96            	ldw	x,sp
+ 341  00c9 5c            	incw	x
+ 342  00ca cd0000        	call	c_ltor
+ 344  00cd ae0000        	ldw	x,#L07
+ 345  00d0 cd0000        	call	c_lcmp
+ 347  00d3 25ec          	jrult	L76
+ 348                     ; 131 }
+ 351  00d5 5b04          	addw	sp,#4
+ 352  00d7 81            	ret	
+ 380                     ; 133 void LCD_init(void)
+ 380                     ; 134 {                                     
+ 381                     	switch	.text
+ 382  00d8               _LCD_init:
+ 386                     ; 135      LCD_GPIO_init();    
+ 388  00d8 ad9e          	call	_LCD_GPIO_init
+ 390                     ; 136     toggle_EN_pin();
+ 392  00da cd01f9        	call	_toggle_EN_pin
+ 394                     ; 138     GPIO_WriteLow(LCD_PORT, LCD_RS);            
+ 396  00dd 4b01          	push	#1
+ 397  00df ae5005        	ldw	x,#20485
+ 398  00e2 cd0000        	call	_GPIO_WriteLow
+ 400  00e5 84            	pop	a
+ 401                     ; 139     GPIO_WriteLow(LCD_PORT, LCD_DB7);   
+ 403  00e6 ad2c          	call	LC001
+ 404                     ; 142     GPIO_WriteHigh(LCD_PORT, LCD_DB4);                      
+ 406  00e8 ad46          	call	LC002
+ 408                     ; 145     GPIO_WriteLow(LCD_PORT, LCD_DB7);   
+ 410  00ea ad28          	call	LC001
+ 411                     ; 148     GPIO_WriteHigh(LCD_PORT, LCD_DB4);  
+ 413  00ec ad42          	call	LC002
+ 415                     ; 151     GPIO_WriteLow(LCD_PORT, LCD_DB7);   
+ 417  00ee ad24          	call	LC001
+ 418                     ; 154     GPIO_WriteHigh(LCD_PORT, LCD_DB4);  
+ 420  00f0 ad3e          	call	LC002
+ 422                     ; 157     GPIO_WriteLow(LCD_PORT, LCD_DB7);   
+ 424  00f2 ad20          	call	LC001
+ 425                     ; 160     GPIO_WriteLow(LCD_PORT, LCD_DB4);  
+ 427  00f4 4b04          	push	#4
+ 428  00f6 ae5005        	ldw	x,#20485
+ 429  00f9 cd0000        	call	_GPIO_WriteLow
+ 431  00fc 84            	pop	a
+ 432                     ; 161     toggle_EN_pin();
+ 434  00fd cd01f9        	call	_toggle_EN_pin
+ 436                     ; 163     LCD_send((_4_pin_interface | _2_row_display | _5x7_dots), CMD);
+ 438  0100 ae2800        	ldw	x,#10240
+ 439  0103 ad37          	call	_LCD_send
+ 441                     ; 164     LCD_send((display_on | cursor_off | blink_off), CMD); 
+ 443  0105 ae0c00        	ldw	x,#3072
+ 444  0108 ad32          	call	_LCD_send
+ 446                     ; 165     LCD_send(clear_display, CMD);         
+ 448  010a ae0100        	ldw	x,#256
+ 449  010d ad2d          	call	_LCD_send
+ 451                     ; 166     LCD_send((cursor_direction_inc | display_no_shift), CMD);
+ 453  010f ae0600        	ldw	x,#1536
+ 455                     ; 167 }   
+ 458  0112 2028          	jp	_LCD_send
+ 459  0114               LC001:
+ 460  0114 4b20          	push	#32
+ 461  0116 ae5005        	ldw	x,#20485
+ 462  0119 cd0000        	call	_GPIO_WriteLow
+ 464  011c 84            	pop	a
+ 465                     ; 140     GPIO_WriteLow(LCD_PORT, LCD_DB6);   
+ 467  011d 4b10          	push	#16
+ 468  011f ae5005        	ldw	x,#20485
+ 469  0122 cd0000        	call	_GPIO_WriteLow
+ 471  0125 84            	pop	a
+ 472                     ; 141     GPIO_WriteHigh(LCD_PORT, LCD_DB5);   
+ 474  0126 4b08          	push	#8
+ 475  0128 ae5005        	ldw	x,#20485
+ 476  012b cd0000        	call	_GPIO_WriteHigh
+ 478  012e 84            	pop	a
+ 479  012f 81            	ret	
+ 480  0130               LC002:
+ 481  0130 4b04          	push	#4
+ 482  0132 ae5005        	ldw	x,#20485
+ 483  0135 cd0000        	call	_GPIO_WriteHigh
+ 485  0138 84            	pop	a
+ 486                     ; 155     toggle_EN_pin();                  
+ 488  0139 cc01f9        	jp	_toggle_EN_pin
+ 534                     ; 170 void LCD_send(unsigned char value, unsigned char mode)
+ 534                     ; 171 {                               
+ 535                     	switch	.text
+ 536  013c               _LCD_send:
+ 538  013c 89            	pushw	x
+ 539       00000000      OFST:	set	0
+ 542                     ; 172     switch(mode)
+ 544  013d 9f            	ld	a,xl
+ 546                     ; 182               break;
+ 547  013e 4d            	tnz	a
+ 548  013f 270d          	jreq	L501
+ 549  0141 4a            	dec	a
+ 550  0142 2613          	jrne	L331
+ 551                     ; 176               GPIO_WriteHigh(LCD_PORT, LCD_RS);   
+ 553  0144 4b01          	push	#1
+ 554  0146 ae5005        	ldw	x,#20485
+ 555  0149 cd0000        	call	_GPIO_WriteHigh
+ 557                     ; 177               break;
+ 559  014c 2008          	jp	LC003
+ 560  014e               L501:
+ 561                     ; 181               GPIO_WriteLow(LCD_PORT, LCD_RS);   
+ 563  014e 4b01          	push	#1
+ 564  0150 ae5005        	ldw	x,#20485
+ 565  0153 cd0000        	call	_GPIO_WriteLow
+ 567  0156               LC003:
+ 568  0156 84            	pop	a
+ 569                     ; 182               break;
+ 571  0157               L331:
+ 572                     ; 186        LCD_4bit_send(value);
+ 574  0157 7b01          	ld	a,(OFST+1,sp)
+ 575  0159 ad02          	call	_LCD_4bit_send
+ 577                     ; 187 }  
+ 580  015b 85            	popw	x
+ 581  015c 81            	ret	
+ 617                     ; 190 void LCD_4bit_send(unsigned char lcd_data)       
+ 617                     ; 191 {
+ 618                     	switch	.text
+ 619  015d               _LCD_4bit_send:
+ 621  015d 88            	push	a
+ 622       00000000      OFST:	set	0
+ 625                     ; 192     toggle_io(lcd_data, 7, LCD_DB7);
+ 627  015e 4b20          	push	#32
+ 628  0160 ae0007        	ldw	x,#7
+ 629  0163 95            	ld	xh,a
+ 630  0164 cd0228        	call	_toggle_io
+ 632  0167 84            	pop	a
+ 633                     ; 193     toggle_io(lcd_data, 6, LCD_DB6);
+ 635  0168 4b10          	push	#16
+ 636  016a 7b02          	ld	a,(OFST+2,sp)
+ 637  016c ae0006        	ldw	x,#6
+ 638  016f 95            	ld	xh,a
+ 639  0170 cd0228        	call	_toggle_io
+ 641  0173 84            	pop	a
+ 642                     ; 194     toggle_io(lcd_data, 5, LCD_DB5);
+ 644  0174 4b08          	push	#8
+ 645  0176 7b02          	ld	a,(OFST+2,sp)
+ 646  0178 ae0005        	ldw	x,#5
+ 647  017b 95            	ld	xh,a
+ 648  017c cd0228        	call	_toggle_io
+ 650  017f 84            	pop	a
+ 651                     ; 195     toggle_io(lcd_data, 4, LCD_DB4);
+ 653  0180 4b04          	push	#4
+ 654  0182 7b02          	ld	a,(OFST+2,sp)
+ 655  0184 ae0004        	ldw	x,#4
+ 656  0187 95            	ld	xh,a
+ 657  0188 cd0228        	call	_toggle_io
+ 659  018b 84            	pop	a
+ 660                     ; 196     toggle_EN_pin();
+ 662  018c ad6b          	call	_toggle_EN_pin
+ 664                     ; 197     toggle_io(lcd_data, 3, LCD_DB7);
+ 666  018e 4b20          	push	#32
+ 667  0190 7b02          	ld	a,(OFST+2,sp)
+ 668  0192 ae0003        	ldw	x,#3
+ 669  0195 95            	ld	xh,a
+ 670  0196 cd0228        	call	_toggle_io
+ 672  0199 84            	pop	a
+ 673                     ; 198     toggle_io(lcd_data, 2, LCD_DB6);
+ 675  019a 4b10          	push	#16
+ 676  019c 7b02          	ld	a,(OFST+2,sp)
+ 677  019e ae0002        	ldw	x,#2
+ 678  01a1 95            	ld	xh,a
+ 679  01a2 cd0228        	call	_toggle_io
+ 681  01a5 84            	pop	a
+ 682                     ; 199     toggle_io(lcd_data, 1, LCD_DB5);
+ 684  01a6 4b08          	push	#8
+ 685  01a8 7b02          	ld	a,(OFST+2,sp)
+ 686  01aa ae0001        	ldw	x,#1
+ 687  01ad 95            	ld	xh,a
+ 688  01ae ad78          	call	_toggle_io
+ 690  01b0 84            	pop	a
+ 691                     ; 200     toggle_io(lcd_data, 0, LCD_DB4);
+ 693  01b1 4b04          	push	#4
+ 694  01b3 7b02          	ld	a,(OFST+2,sp)
+ 695  01b5 5f            	clrw	x
+ 696  01b6 95            	ld	xh,a
+ 697  01b7 ad6f          	call	_toggle_io
+ 699  01b9 84            	pop	a
+ 700                     ; 201     toggle_EN_pin();
+ 702  01ba ad3d          	call	_toggle_EN_pin
+ 704                     ; 202 }  
+ 707  01bc 84            	pop	a
+ 708  01bd 81            	ret	
+ 744                     ; 205 void LCD_putstr(char *lcd_string)
+ 744                     ; 206 {
+ 745                     	switch	.text
+ 746  01be               _LCD_putstr:
+ 748  01be 89            	pushw	x
+ 749       00000000      OFST:	set	0
+ 752  01bf f6            	ld	a,(x)
+ 753  01c0               L171:
+ 754                     ; 209         LCD_send(*lcd_string++, DAT);
+ 756  01c0 5c            	incw	x
+ 757  01c1 1f01          	ldw	(OFST+1,sp),x
+ 758  01c3 ae0001        	ldw	x,#1
+ 759  01c6 95            	ld	xh,a
+ 760  01c7 cd013c        	call	_LCD_send
+ 762                     ; 210     }while(*lcd_string != '\0');
+ 764  01ca 1e01          	ldw	x,(OFST+1,sp)
+ 765  01cc f6            	ld	a,(x)
+ 766  01cd 26f1          	jrne	L171
+ 767                     ; 211 }
+ 770  01cf 85            	popw	x
+ 771  01d0 81            	ret	
+ 806                     ; 213 void LCD_putchar(char char_data)
+ 806                     ; 214 {
+ 807                     	switch	.text
+ 808  01d1               _LCD_putchar:
+ 812                     ; 215     LCD_send(char_data, DAT);
+ 814  01d1 ae0001        	ldw	x,#1
+ 815  01d4 95            	ld	xh,a
+ 817                     ; 216 }
+ 820  01d5 cc013c        	jp	_LCD_send
+ 844                     ; 218 void LCD_clear_home(void)
+ 844                     ; 219 {
+ 845                     	switch	.text
+ 846  01d8               _LCD_clear_home:
+ 850                     ; 220     LCD_send(clear_display, CMD);
+ 852  01d8 ae0100        	ldw	x,#256
+ 853  01db cd013c        	call	_LCD_send
+ 855                     ; 221     LCD_send(goto_home, CMD);
+ 857  01de ae0200        	ldw	x,#512
+ 859                     ; 222 }
+ 862  01e1 cc013c        	jp	_LCD_send
+ 906                     ; 224 void LCD_goto(unsigned char  x_pos, unsigned char  y_pos)
+ 906                     ; 225 {                                                   
+ 907                     	switch	.text
+ 908  01e4               _LCD_goto:
+ 910  01e4 89            	pushw	x
+ 911       00000000      OFST:	set	0
+ 914                     ; 226     if(y_pos == 0)    
+ 916  01e5 9f            	ld	a,xl
+ 917  01e6 4d            	tnz	a
+ 918  01e7 2605          	jrne	L742
+ 919                     ; 228         LCD_send((0x80 | x_pos), CMD);
+ 921  01e9 9e            	ld	a,xh
+ 922  01ea aa80          	or	a,#128
+ 925  01ec 2004          	jra	L152
+ 926  01ee               L742:
+ 927                     ; 232         LCD_send((0x80 | 0x40 | x_pos), CMD); 
+ 929  01ee 7b01          	ld	a,(OFST+1,sp)
+ 930  01f0 aac0          	or	a,#192
+ 932  01f2               L152:
+ 933  01f2 5f            	clrw	x
+ 934  01f3 95            	ld	xh,a
+ 935  01f4 cd013c        	call	_LCD_send
+ 936                     ; 234 }
+ 939  01f7 85            	popw	x
+ 940  01f8 81            	ret	
+ 976                     	switch	.const
+ 977  0004               L052:
+ 978  0004 000005ff      	dc.l	1535
+ 979                     ; 236 void toggle_EN_pin(void)
+ 979                     ; 237 {
+ 980                     	switch	.text
+ 981  01f9               _toggle_EN_pin:
+ 983  01f9 5204          	subw	sp,#4
+ 984       00000004      OFST:	set	4
+ 987                     ; 239     GPIO_WriteHigh(LCD_PORT, LCD_EN);    
+ 989  01fb 4b02          	push	#2
+ 990  01fd ae5005        	ldw	x,#20485
+ 991  0200 cd0000        	call	_GPIO_WriteHigh
+ 993  0203 5f            	clrw	x
+ 994  0204 84            	pop	a
+ 995                     ; 241 		for (Tempo_Aux=0;Tempo_Aux<0x05FF;Tempo_Aux++) continue;
+ 997  0205 1f03          	ldw	(OFST-1,sp),x
+ 998  0207 1f01          	ldw	(OFST-3,sp),x
+1000  0209               L372:
+1003  0209 96            	ldw	x,sp
+1004  020a 5c            	incw	x
+1005  020b a601          	ld	a,#1
+1006  020d cd0000        	call	c_lgadc
+1011  0210 96            	ldw	x,sp
+1012  0211 5c            	incw	x
+1013  0212 cd0000        	call	c_ltor
+1015  0215 ae0004        	ldw	x,#L052
+1016  0218 cd0000        	call	c_lcmp
+1018  021b 25ec          	jrult	L372
+1019                     ; 242     GPIO_WriteLow(LCD_PORT,LCD_EN);   
+1021  021d 4b02          	push	#2
+1022  021f ae5005        	ldw	x,#20485
+1023  0222 cd0000        	call	_GPIO_WriteLow
+1025  0225 5b05          	addw	sp,#5
+1026                     ; 243 }
+1029  0227 81            	ret	
+1113                     ; 245 void toggle_io(unsigned char lcd_data, unsigned char bit_pos, unsigned char pin_num)
+1113                     ; 246 {
+1114                     	switch	.text
+1115  0228               _toggle_io:
+1117  0228 89            	pushw	x
+1118  0229 88            	push	a
+1119       00000001      OFST:	set	1
+1122                     ; 247     bool temp = FALSE;
+1124                     ; 249     temp = (0x01 & (lcd_data >> bit_pos));  
+1126  022a 9f            	ld	a,xl
+1127  022b 5f            	clrw	x
+1128  022c 97            	ld	xl,a
+1129  022d 7b02          	ld	a,(OFST+1,sp)
+1130  022f 5d            	tnzw	x
+1131  0230 2704          	jreq	L652
+1132  0232               L062:
+1133  0232 44            	srl	a
+1134  0233 5a            	decw	x
+1135  0234 26fc          	jrne	L062
+1136  0236               L652:
+1137  0236 a401          	and	a,#1
+1138  0238 6b01          	ld	(OFST+0,sp),a
+1140                     ; 251     switch(temp)
+1142  023a 4a            	dec	a
+1143  023b 260b          	jrne	L103
+1146                     ; 255             GPIO_WriteHigh(LCD_PORT, pin_num);   
+1148  023d 7b06          	ld	a,(OFST+5,sp)
+1149  023f 88            	push	a
+1150  0240 ae5005        	ldw	x,#20485
+1151  0243 cd0000        	call	_GPIO_WriteHigh
+1153                     ; 256             break;
+1155  0246 2009          	jra	L743
+1156  0248               L103:
+1157                     ; 261             GPIO_WriteLow(LCD_PORT, pin_num);   
+1159  0248 7b06          	ld	a,(OFST+5,sp)
+1160  024a 88            	push	a
+1161  024b ae5005        	ldw	x,#20485
+1162  024e cd0000        	call	_GPIO_WriteLow
+1164                     ; 262             break;
+1165  0251               L743:
+1166  0251 5b04          	addw	sp,#4
+1167                     ; 265 }
+1170  0253 81            	ret	
+1183                     	xdef	_main
+1184                     	xdef	_toggle_io
+1185                     	xdef	_toggle_EN_pin
+1186                     	xdef	_LCD_goto
+1187                     	xdef	_LCD_clear_home
+1188                     	xdef	_LCD_putchar
+1189                     	xdef	_LCD_putstr
+1190                     	xdef	_LCD_4bit_send
+1191                     	xdef	_LCD_send
+1192                     	xdef	_LCD_init
+1193                     	xdef	_LCD_GPIO_init
+1194                     	xdef	_GPIO_Configuration
+1195                     	xdef	_CLK_Configuration
+1196                     	xref	_UCS_Listener
+1197                     	xref	_UART2_Init
+1198                     	xref	_GPIO_WriteLow
+1199                     	xref	_GPIO_WriteHigh
+1200                     	xref	_GPIO_Init
+1201                     	xref	_GPIO_DeInit
+1202                     	xref	_CLK_HSIPrescalerConfig
+1203                     	switch	.const
+1204  0008               L12:
+1205  0008 55435300      	dc.b	"UCS",0
+1225                     	xref	c_lcmp
+1226                     	xref	c_ltor
+1227                     	xref	c_lgadc
+1228                     	end

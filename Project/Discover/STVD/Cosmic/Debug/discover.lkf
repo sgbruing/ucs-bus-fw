@@ -61,6 +61,7 @@ Debug\stm8_tsl_services.o
 Debug\stm8_tsl_singlechannelkey.o
 Debug\stm8_tsl_timebase.o
 Debug\main.o
+Debug\ucs_bus.o
 #<END OBJECT_FILES>
 
 

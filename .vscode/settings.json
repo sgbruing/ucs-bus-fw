@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "stm8_tsl_api.h": "c",
+        "stm8s.h": "c"
+    }
+}

@@ -1,6 +1,7 @@
 
 #include "stm8s.h"
 #include "stm8_tsl_api.h"
+#include "ucs_bus.h"
 
 void CLK_Configuration(void);
 void GPIO_Configuration(void);
@@ -52,13 +53,13 @@ void toggle_io(unsigned char lcd_data, unsigned char bit_pos, unsigned char pin_
 void main(void)
 {
 	unsigned long TempoAux;
-  /* Configures clocks */
-  CLK_Configuration();
+    /* Configures clocks */
+    CLK_Configuration();
 
-  /* Configures GPIOs */
-  GPIO_Configuration();
+    /* Configures GPIOs */
+    GPIO_Configuration();
 
-	LCD_init();  
+    LCD_init();  
     LCD_clear_home(); 
  
     LCD_goto(3, 0);                              
@@ -66,50 +67,12 @@ void main(void)
 		
 	UART2_Init(9600,UART2_WORDLENGTH_8D,UART2_STOPBITS_1,UART2_PARITY_NO,UART2_SYNCMODE_CLOCK_DISABLE,UART2_MODE_TXRX_ENABLE);
 	
-    
-	
-  do
-  {
+    do
+    {
 		
-		unsigned long contTempo = 0xFFFF;
-		int cont = 0;	
-		unsigned char dadosrx[10];
-		
-		int i=0;
-		for(i=0; i<10; i++){
-			dadosrx[i] = 0;
-		}
-		
-		do{
-			//GPIO_WriteHigh(GPIOE, GPIO_PIN_0); //liga led
-			//GPIO_WriteHigh(GPIOE, GPIO_PIN_1); //liga led
-			
-			/*
-					if(GPIO_ReadInputPin(GPIOE, GPIO_PIN_2) == 0){ //bot�o pressionado
-						GPIO_WriteLow(GPIOE, GPIO_PIN_1); //LIGA led
-					} else { //bot�o solto
-						GPIO_WriteHigh(GPIOE, GPIO_PIN_1); //DESLIGA led
-					}
-			
-							
-					//uint8_t btn_2_value = GPIO_ReadInputPin(GPIOE, GPIO_PIN_3);
-					if(GPIO_ReadInputPin(GPIOE, GPIO_PIN_3) == 0){ //bot�o pressionado
-						GPIO_WriteLow(GPIOE, GPIO_PIN_0); //LIGA led
-					} else { //bot�o solto
-						GPIO_WriteHigh(GPIOE, GPIO_PIN_0); //DESLIGA led
-					}
-			*/
-			
-			if (UART2_GetFlagStatus(UART2_FLAG_RXNE) == TRUE){
-				dadosrx[cont] = UART2_ReceiveData8(); 
-				cont++;
-				contTempo = 0xFFFF;
-			}
-			contTempo--;
-			
-		} while(contTempo>0);
+        UCS_Listener();
 
-		if (cont>0){
+		/*if (cont>0){
 			LCD_clear_home();
 			LCD_goto(0, 0); 
 			LCD_putstr(dadosrx);
@@ -122,36 +85,8 @@ void main(void)
 				GPIO_WriteHigh(GPIOE, GPIO_PIN_0); //DESLIGA led
 				GPIO_WriteHigh(GPIOE, GPIO_PIN_1); //DESLIGA led
 			}
-		}
+		}*/
 		
-		/*
-		GPIO_WriteHigh(GPIOE, GPIO_PIN_0);
-		for (TempoAux=0;TempoAux<0xFFFF;TempoAux++) continue;
-		GPIO_WriteLow(GPIOE, GPIO_PIN_0);
-		for (TempoAux=0;TempoAux<0xFFFF;TempoAux++) continue;
-		*/
-		
-		/*
-		if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_2) == 0){ //bot�o pressionado
-			GPIO_WriteHigh(GPIOD, GPIO_PIN_0); //liga led
-		} else { //bot�o solto
-			GPIO_WriteLow(GPIOD, GPIO_PIN_0); //desliga led
-		}
-
-				
-		//uint8_t btn_2_value = GPIO_ReadInputPin(GPIOD, GPIO_PIN_3);
-		if(GPIO_ReadInputPin(GPIOD, GPIO_PIN_3) == 0){ //bot�o pressionado
-			GPIO_WriteHigh(GPIOD, GPIO_PIN_1); //liga led
-		} else { //bot�o solto
-			GPIO_WriteLow(GPIOD, GPIO_PIN_1); //desliga led
-		}
-		*/
-		
-		/*UART2_SendData8(0X30);
-		GPIO_WriteHigh(GPIOD, GPIO_PIN_0);
-		for (TempoAux=0;TempoAux<0xFFFF;TempoAux++) continue;
-		GPIO_WriteLow(GPIOD, GPIO_PIN_0);
-		for (TempoAux=0;TempoAux<0xFFFF;TempoAux++) continue;*/
   }while(1);
 
 }

@@ -564,6 +564,11 @@ Next=Root.Source Files...\..\src\stm8_interrupt_vector.c
 [Root.Source Files...\..\src\stm8_interrupt_vector.c]
 ElemType=File
 PathName=..\..\src\stm8_interrupt_vector.c
+Next=Root.Source Files...\..\src\ucs_bus.c
+
+[Root.Source Files...\..\src\ucs_bus.c]
+ElemType=File
+PathName=..\..\src\ucs_bus.c
 
 [Root.Include Files]
 ElemType=Folder
@@ -646,3 +651,8 @@ Next=Root.Include Files...\..\inc\stm8s_conf.h
 [Root.Include Files...\..\inc\stm8s_conf.h]
 ElemType=File
 PathName=..\..\inc\stm8s_conf.h
+Next=Root.Include Files...\..\inc\ucs_bus.h
+
+[Root.Include Files...\..\inc\ucs_bus.h]
+ElemType=File
+PathName=..\..\inc\ucs_bus.h
