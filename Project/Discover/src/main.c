@@ -66,8 +66,10 @@ void main(void)
     LCD_putstr("UCS"); 
 		
 	UART2_Init(9600,UART2_WORDLENGTH_8D,UART2_STOPBITS_1,UART2_PARITY_NO,UART2_SYNCMODE_CLOCK_DISABLE,UART2_MODE_TXRX_ENABLE);
-	
-    do
+		
+		UCS_Init();
+    
+		do
     {
 		
         UCS_Listener();
