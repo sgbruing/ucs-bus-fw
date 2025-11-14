@@ -289,21 +289,22 @@ UCS_Answer read_button_status(GPIO_Pin_TypeDef button_pin)
     return answer_packet;
 }
 
-UCS_Answer set_led_state(GPIO_Pin_TypeDef led_pin, const uint8_t* state)
+UCS_Answer set_led_state(GPIO_Pin_TypeDef led_pin, const uint8_t* data)
 {
     UCS_Answer answer_packet;
 
     answer_packet.answer   = NAK;
     answer_packet.data_len = 0U;
+    uint8_t state = data[0];
 
-    if (state == 0) {
+    if (state > 1) {
         return answer_packet;
     }
 
     switch (led_pin) {
     case LED_1:
     case LED_2:
-        if (*state != 0U) {
+        if (state == 1) {
             GPIO_WriteLow(GPIOE, led_pin);  /* ON (se LED ativo em LOW) */
         } else {
             GPIO_WriteHigh(GPIOE, led_pin); /* OFF */
