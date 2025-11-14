@@ -22,6 +22,34 @@ void Context_Init(UCS_Context* ctx, uint8_t my_address)
 void UCS_Init(void)
 {
     Context_Init(&ucs_context, MY_ADRESS);
+		GPIO_WriteHigh(GPIOE, LED_1);
+		GPIO_WriteHigh(GPIOE, LED_2);
+}
+
+static uint8_t UCS_CalcRxBCC(const UCS_Context* ctx)
+{
+    uint8_t idx = ctx->rx_index;
+    uint8_t len = ctx->rx_buffer[idx + 1U];  /* byte de length */
+    uint8_t bcc = 0U;
+    uint8_t i;
+
+    for (i = 0U; i < (uint8_t)(len - 1U); i++) {
+        bcc ^= ctx->rx_buffer[idx + 1U + i];
+    }
+
+    return bcc;
+}
+
+static uint8_t UCS_CalcTxBCC(const UCS_Frame* frame)
+{
+    uint8_t bcc = frame->length ^ frame->dest ^ frame->src ^ frame->cmd;
+    uint8_t i;
+
+    for (i = 0U; i < frame->data_len; i++) {
+        bcc ^= frame->data[i];
+    }
+
+    return bcc;
 }
 
 void UCS_Listener(void)
@@ -81,8 +109,18 @@ void UCS_Listener(void)
                 break;
 
             case BCC_VERIFY:
-                /* aqui daria pra checar BCC, por enquanto só vai para READ_PAYLOAD */
-                ucs_context.state = READ_PAYLOAD;
+                uint8_t idx      = ucs_context.rx_index;
+                uint8_t len      = ucs_context.rx_buffer[idx + 1U];
+                uint8_t recv_bcc = ucs_context.rx_buffer[idx + len];      /* BCC recebido */
+                uint8_t calc_bcc = UCS_CalcRxBCC(&ucs_context);           /* BCC calculado */
+
+                if (calc_bcc == recv_bcc) {
+                    /* BCC OK, pode processar o payload */
+                    ucs_context.state = READ_PAYLOAD;
+                } else {
+                    /* BCC inválido, descarta frame */
+                    ucs_context.state = WAIT_STX;
+                }
                 break;
 
             case READ_PAYLOAD:
@@ -119,11 +157,7 @@ void send_answer(UCS_Frame* frame_RX, const UCS_Answer* answer_packet)
     frame_TX.src  = frame_RX->dest;
     frame_TX.cmd  = frame_RX->cmd;
 
-    /* BCC simples: XOR de todos os campos após STX */
-    frame_TX.bcc = frame_TX.length ^ frame_TX.dest ^ frame_TX.src ^ frame_TX.cmd;
-    for (i = 0; i < frame_TX.data_len; i++) {
-        frame_TX.bcc ^= frame_TX.data[i];
-    }
+    frame_TX.bcc = UCS_CalcTxBCC(&frame_TX);
 
     UCS_SendPacket(&frame_TX);
 }
@@ -133,16 +167,23 @@ void UCS_SendPacket(const UCS_Frame* frame)
     uint8_t i;
 
     UART2_SendData8(frame->stx);
+		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
     UART2_SendData8(frame->length);
+		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
     UART2_SendData8(frame->dest);
+		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
     UART2_SendData8(frame->src);
+		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
     UART2_SendData8(frame->cmd);
+		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
 
     for (i = 0; i < frame->data_len; i++) {
         UART2_SendData8(frame->data[i]);
+				while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
     }
 
     UART2_SendData8(frame->bcc);
+		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
 }
 
 void Process_Frame(UCS_Context* ctx, UCS_Frame* frame_RX)
