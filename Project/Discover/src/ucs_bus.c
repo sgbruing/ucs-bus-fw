@@ -4,6 +4,8 @@
 extern void LCD_clear_home(void);
 extern void LCD_send(unsigned char value, unsigned char mode);
 extern void LCD_putchar(char char_data);
+static void RS485_SetTx(void);
+static void RS485_SetRx(void);
 
 #define CMD 0
 
@@ -22,8 +24,11 @@ void Context_Init(UCS_Context* ctx, uint8_t my_address)
 void UCS_Init(void)
 {
     Context_Init(&ucs_context, MY_ADRESS);
-		GPIO_WriteHigh(GPIOE, LED_1);
-		GPIO_WriteHigh(GPIOE, LED_2);
+	GPIO_WriteHigh(GPIOE, LED_1);
+	GPIO_WriteHigh(GPIOE, LED_2);	
+		
+    RS485_SetRx();
+		
 }
 
 static uint8_t UCS_CalcRxBCC(const UCS_Context* ctx)
@@ -33,8 +38,9 @@ static uint8_t UCS_CalcRxBCC(const UCS_Context* ctx)
     uint8_t bcc = 0U;
     uint8_t i;
 
-    for (i = 0U; i < (uint8_t)(len - 1U); i++) {
-        bcc ^= ctx->rx_buffer[idx + 1U + i];
+    /* XOR de STX + LEN + ... + último DATA (não inclui o BCC) */
+    for (i = 0U; i < (uint8_t)(len); i++) {
+        bcc ^= ctx->rx_buffer[idx + i];   /* começa em STX (idx) e vai até LEN+...+DATA */
     }
 
     return bcc;
@@ -42,7 +48,7 @@ static uint8_t UCS_CalcRxBCC(const UCS_Context* ctx)
 
 static uint8_t UCS_CalcTxBCC(const UCS_Frame* frame)
 {
-    uint8_t bcc = frame->length ^ frame->dest ^ frame->src ^ frame->cmd;
+    uint8_t bcc = frame->stx ^ frame->length ^ frame->dest ^ frame->src ^ frame->cmd;
     uint8_t i;
 
     for (i = 0U; i < frame->data_len; i++) {
@@ -51,6 +57,19 @@ static uint8_t UCS_CalcTxBCC(const UCS_Frame* frame)
 
     return bcc;
 }
+
+static void RS485_SetTx(void)
+{
+    // 1 = TX (driver habilitado)
+    GPIO_WriteHigh(RS485_EN_PORT, RS485_EN_PIN);
+}
+
+static void RS485_SetRx(void)
+{
+    // 0 = RX (driver em alta imped�ncia / recep��o)
+    GPIO_WriteLow(RS485_EN_PORT, RS485_EN_PIN);
+}
+
 
 void UCS_Listener(void)
 {
@@ -108,7 +127,7 @@ void UCS_Listener(void)
                 }
                 break;
 
-            case BCC_VERIFY:
+            case BCC_VERIFY: {
                 uint8_t idx      = ucs_context.rx_index;
                 uint8_t len      = ucs_context.rx_buffer[idx + 1U];
                 uint8_t recv_bcc = ucs_context.rx_buffer[idx + len];      /* BCC recebido */
@@ -122,6 +141,7 @@ void UCS_Listener(void)
                     ucs_context.state = WAIT_STX;
                 }
                 break;
+            }
 
             case READ_PAYLOAD:
                 Process_Frame(&ucs_context, &frame_RX);
@@ -164,26 +184,38 @@ void send_answer(UCS_Frame* frame_RX, const UCS_Answer* answer_packet)
 
 void UCS_SendPacket(const UCS_Frame* frame)
 {
-    uint8_t i;
+    uint8_t i,d;
+
+    RS485_SetTx();
+
+    for (d = 0U; d < 200U; d++) {
+        /* no-op */
+    }
 
     UART2_SendData8(frame->stx);
-		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
+    while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
+
     UART2_SendData8(frame->length);
-		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
+    while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
+
     UART2_SendData8(frame->dest);
-		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
+    while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
+
     UART2_SendData8(frame->src);
-		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
+    while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
+
     UART2_SendData8(frame->cmd);
-		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
+    while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
 
     for (i = 0; i < frame->data_len; i++) {
         UART2_SendData8(frame->data[i]);
-				while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
+        while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
     }
 
     UART2_SendData8(frame->bcc);
-		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
+    while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
+
+    RS485_SetRx();
 }
 
 void Process_Frame(UCS_Context* ctx, UCS_Frame* frame_RX)
@@ -292,19 +324,25 @@ UCS_Answer read_button_status(GPIO_Pin_TypeDef button_pin)
 UCS_Answer set_led_state(GPIO_Pin_TypeDef led_pin, const uint8_t* data)
 {
     UCS_Answer answer_packet;
+    uint8_t state;
 
     answer_packet.answer   = NAK;
     answer_packet.data_len = 0U;
-    uint8_t state = data[0];
 
-    if (state > 1) {
-        return answer_packet;
+    if (data == 0) {
+        return answer_packet; // segurança, se passar NULL
+    }
+
+    state = data[0];
+
+    if (state > 1U) {
+        return answer_packet; // NAK, valor inválido
     }
 
     switch (led_pin) {
     case LED_1:
     case LED_2:
-        if (state == 1) {
+        if (state == 1U) {
             GPIO_WriteLow(GPIOE, led_pin);  /* ON (se LED ativo em LOW) */
         } else {
             GPIO_WriteHigh(GPIOE, led_pin); /* OFF */
@@ -313,6 +351,7 @@ UCS_Answer set_led_state(GPIO_Pin_TypeDef led_pin, const uint8_t* data)
         break;
 
     default:
+        // continua NAK
         break;
     }
 
@@ -325,7 +364,7 @@ UCS_Answer blink_led(GPIO_Pin_TypeDef led_pin, const uint8_t* data)
     uint8_t times;
     uint8_t delay_val;
     uint16_t i;
-    uint16_t j;
+    uint16_t j,d;
 
     answer_packet.answer   = NAK;
     answer_packet.data_len = 0U;
@@ -347,12 +386,14 @@ UCS_Answer blink_led(GPIO_Pin_TypeDef led_pin, const uint8_t* data)
 
     for (i = 0U; i < times; i++) {
         GPIO_WriteLow(GPIOE, led_pin); /* ON */
-        for (j = 0U; j < (uint16_t)delay_val * 1000U; j++) {
-            /* delay tosco */
+        for (d = 0U; d < 10000U; d++) {
+            /* no-op */
         }
-        GPIO_WriteHigh(GPIOE, led_pin); /* OFF */
-        for (j = 0U; j < (uint16_t)delay_val * 1000U; j++) {
+        GPIO_WriteHigh(GPIOE, led_pin); /* OFF/ */
+        for (d = 0U; d < 10000U; d++) {
+            /* no-op */
         }
+
     }
 
     answer_packet.answer = ACK;

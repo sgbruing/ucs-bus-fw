@@ -3,15 +3,17 @@
 
 #include "stm8s.h"
 
-#define MY_ADRESS 0x01
+#define MY_ADRESS 0x11 //Grupo 17
 #define STX       0x02
 
 #define MAX_DATA_LENGTH   64
 #define MAX_FRAME_LENGTH (MAX_DATA_LENGTH + 6) /* STX + Tam + Dest + Src + Cmd + Data... + BCC */
 
-/* Alias de pinos */
 #define BUTTON_1 GPIO_PIN_2
 #define BUTTON_2 GPIO_PIN_3
+
+#define RS485_EN_PORT   GPIOE         
+#define RS485_EN_PIN    GPIO_PIN_5     
 
 #define LED_1    GPIO_PIN_0
 #define LED_2    GPIO_PIN_1
