@@ -4,6 +4,8 @@
 extern void LCD_clear_home(void);
 extern void LCD_send(unsigned char value, unsigned char mode);
 extern void LCD_putchar(char char_data);
+static void RS485_SetTx(void);
+static void RS485_SetRx(void);
 
 #define CMD 0
 
@@ -24,6 +26,9 @@ void UCS_Init(void)
     Context_Init(&ucs_context, MY_ADRESS);
 		GPIO_WriteHigh(GPIOE, LED_1);
 		GPIO_WriteHigh(GPIOE, LED_2);
+		
+		RS485_SetRx();
+
 }
 
 static uint8_t UCS_CalcRxBCC(const UCS_Context* ctx)
@@ -52,6 +57,19 @@ static uint8_t UCS_CalcTxBCC(const UCS_Frame* frame)
 
     return bcc;
 }
+
+static void RS485_SetTx(void)
+{
+    // 1 = TX
+    GPIO_WriteHigh(RS485_EN_PORT, RS485_EN_PIN);
+}
+
+static void RS485_SetRx(void)
+{
+    // 0 = RX
+    GPIO_WriteLow(RS485_EN_PORT, RS485_EN_PIN);
+}
+
 
 void UCS_Listener(void)
 {
@@ -173,7 +191,12 @@ void send_answer(UCS_Frame* frame_RX, const UCS_Answer* answer_packet)
 
 void UCS_SendPacket(const UCS_Frame* frame)
 {
-    uint8_t i;
+    uint8_t i, d;
+
+    RS485_SetTx();
+    for (d = 0U; d < 200U; d++) {
+        /* no-op */
+    }
 
     UART2_SendData8(frame->stx);
 		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
@@ -193,6 +216,8 @@ void UCS_SendPacket(const UCS_Frame* frame)
 
     UART2_SendData8(frame->bcc);
 		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
+		RS485_SetRx();
+
 }
 
 void Process_Frame(UCS_Context* ctx, UCS_Frame* frame_RX)
@@ -306,10 +331,14 @@ UCS_Answer set_led_state(GPIO_Pin_TypeDef led_pin, const uint8_t* data)
     answer_packet.answer   = NAK;
     answer_packet.data_len = 0U;
 
+    if (data == 0) {
+        return answer_packet; // segurança, se passar NULL
+    }
+
     state = data[0];
 
     if (state > 1U) {
-        return answer_packet;
+        return answer_packet; // NAK, valor inválido
     }
 
     switch (led_pin) {
@@ -324,6 +353,7 @@ UCS_Answer set_led_state(GPIO_Pin_TypeDef led_pin, const uint8_t* data)
         break;
 
     default:
+        // continua NAK
         break;
     }
 
@@ -332,42 +362,38 @@ UCS_Answer set_led_state(GPIO_Pin_TypeDef led_pin, const uint8_t* data)
 
 UCS_Answer blink_led(GPIO_Pin_TypeDef led_pin, const uint8_t* data)
 {
-    UCS_Answer answer_packet;
+    UCS_Answer ans;
     uint8_t times;
     uint8_t delay_val;
-    uint16_t i;
-    uint16_t j;
+    uint32_t d;
+    uint8_t i;
 
-    answer_packet.answer   = NAK;
-    answer_packet.data_len = 0U;
-    times      = 0U;
-    delay_val  = 0U;
+    ans.answer   = NAK;
+    ans.data_len = 0;
 
-    switch (led_pin) {
-    case LED_1:
-    case LED_2:
-        break;
-    default:
-        return answer_packet;
-    }
+    times = 0;
+    delay_val = 0;
 
-    if (data != 0) {
+    if (data != 0)
+    {
         times     = data[0];
         delay_val = data[1];
     }
 
-    for (i = 0U; i < times; i++) {
-        GPIO_WriteLow(GPIOE, led_pin); /* ON */
-        for (j = 0U; j < (uint16_t)delay_val * 1000U; j++) {
-            /* delay tosco */
-        }
-        GPIO_WriteHigh(GPIOE, led_pin); /* OFF */
-        for (j = 0U; j < (uint16_t)delay_val * 1000U; j++) {
-        }
+    if (led_pin != LED_1 && led_pin != LED_2)
+        return ans;
+
+    for (i = 0; i < times; i++)
+    {
+        GPIO_WriteLow(GPIOE, led_pin);   // ON
+        for (d = 0; d < (uint32_t)(20000UL * delay_val); d++) { }
+
+        GPIO_WriteHigh(GPIOE, led_pin);  // OFF
+        for (d = 0; d < (uint32_t)(20000UL * delay_val); d++) { }
     }
 
-    answer_packet.answer = ACK;
-    return answer_packet;
+    ans.answer = ACK;
+    return ans;
 }
 
 UCS_Answer write_display(const uint8_t* data, uint8_t data_len)
