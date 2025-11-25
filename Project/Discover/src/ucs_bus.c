@@ -4,8 +4,6 @@
 extern void LCD_clear_home(void);
 extern void LCD_send(unsigned char value, unsigned char mode);
 extern void LCD_putchar(char char_data);
-static void RS485_SetTx(void);
-static void RS485_SetRx(void);
 
 #define CMD 0
 
@@ -24,11 +22,8 @@ void Context_Init(UCS_Context* ctx, uint8_t my_address)
 void UCS_Init(void)
 {
     Context_Init(&ucs_context, MY_ADRESS);
-	GPIO_WriteHigh(GPIOE, LED_1);
-	GPIO_WriteHigh(GPIOE, LED_2);	
-		
-    RS485_SetRx();
-		
+		GPIO_WriteHigh(GPIOE, LED_1);
+		GPIO_WriteHigh(GPIOE, LED_2);
 }
 
 static uint8_t UCS_CalcRxBCC(const UCS_Context* ctx)
@@ -38,9 +33,9 @@ static uint8_t UCS_CalcRxBCC(const UCS_Context* ctx)
     uint8_t bcc = 0U;
     uint8_t i;
 
-    /* XOR de STX + LEN + ... + Ãºltimo DATA (nÃ£o inclui o BCC) */
+    /* XOR de STX + LEN + ... + último DATA (não inclui o BCC) */
     for (i = 0U; i < (uint8_t)(len); i++) {
-        bcc ^= ctx->rx_buffer[idx + i];   /* comeÃ§a em STX (idx) e vai atÃ© LEN+...+DATA */
+        bcc ^= ctx->rx_buffer[idx + i];   /* começa em STX (idx) e vai até LEN+...+DATA */
     }
 
     return bcc;
@@ -58,19 +53,6 @@ static uint8_t UCS_CalcTxBCC(const UCS_Frame* frame)
     return bcc;
 }
 
-static void RS485_SetTx(void)
-{
-    // 1 = TX (driver habilitado)
-    GPIO_WriteHigh(RS485_EN_PORT, RS485_EN_PIN);
-}
-
-static void RS485_SetRx(void)
-{
-    // 0 = RX (driver em alta impedï¿½ncia / recepï¿½ï¿½o)
-    GPIO_WriteLow(RS485_EN_PORT, RS485_EN_PIN);
-}
-
-
 void UCS_Listener(void)
 {
     unsigned long timeout;
@@ -87,7 +69,7 @@ void UCS_Listener(void)
     ucs_context.rx_index        = 0;
     ucs_context.expected_length = 0;
 
-    /* lÃª bytes atÃ© timeout */
+    /* lê bytes até timeout */
     do {
         if (UART2_GetFlagStatus(UART2_FLAG_RXNE) == TRUE) {
             if (cont < MAX_FRAME_LENGTH) {
@@ -123,25 +105,32 @@ void UCS_Listener(void)
                 if (ucs_context.rx_buffer[i] == ucs_context.my_address) {
                     ucs_context.state = BCC_VERIFY;
                 } else {
-                    ucs_context.state = WAIT_STX; /* endereÃ§o errado, descarta */
+                    ucs_context.state = WAIT_STX; /* endereço errado, descarta */
                 }
                 break;
 
-            case BCC_VERIFY: {
-                uint8_t idx      = ucs_context.rx_index;
-                uint8_t len      = ucs_context.rx_buffer[idx + 1U];
-                uint8_t recv_bcc = ucs_context.rx_buffer[idx + len];      /* BCC recebido */
-                uint8_t calc_bcc = UCS_CalcRxBCC(&ucs_context);           /* BCC calculado */
+						case BCC_VERIFY:
+						{
+								uint8_t idx;
+								uint8_t len;
+								uint8_t recv_bcc;
+								uint8_t calc_bcc;
+						
+								idx      = ucs_context.rx_index;
+								len      = ucs_context.rx_buffer[idx + 1U];
+								recv_bcc = ucs_context.rx_buffer[idx + len];      /* BCC recebido */
+								calc_bcc = UCS_CalcRxBCC(&ucs_context);           /* BCC calculado */
+						
+								if (calc_bcc == recv_bcc) {
+										/* BCC OK, pode processar o payload */
+										ucs_context.state = READ_PAYLOAD;
+								} else {
+										/* BCC inválido, descarta frame */
+										ucs_context.state = WAIT_STX;
+								}
+								break;
+						}
 
-                if (calc_bcc == recv_bcc) {
-                    /* BCC OK, pode processar o payload */
-                    ucs_context.state = READ_PAYLOAD;
-                } else {
-                    /* BCC invÃ¡lido, descarta frame */
-                    ucs_context.state = WAIT_STX;
-                }
-                break;
-            }
 
             case READ_PAYLOAD:
                 Process_Frame(&ucs_context, &frame_RX);
@@ -184,38 +173,26 @@ void send_answer(UCS_Frame* frame_RX, const UCS_Answer* answer_packet)
 
 void UCS_SendPacket(const UCS_Frame* frame)
 {
-    uint8_t i,d;
-
-    RS485_SetTx();
-
-    for (d = 0U; d < 200U; d++) {
-        /* no-op */
-    }
+    uint8_t i;
 
     UART2_SendData8(frame->stx);
-    while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
-
+		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
     UART2_SendData8(frame->length);
-    while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
-
+		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
     UART2_SendData8(frame->dest);
-    while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
-
+		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
     UART2_SendData8(frame->src);
-    while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
-
+		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
     UART2_SendData8(frame->cmd);
-    while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
+		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
 
     for (i = 0; i < frame->data_len; i++) {
         UART2_SendData8(frame->data[i]);
-        while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
+				while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
     }
 
     UART2_SendData8(frame->bcc);
-    while (UART2_GetFlagStatus(UART2_FLAG_TC) == FALSE);
-
-    RS485_SetRx();
+		while(UART2_GetFlagStatus(UART2_FLAG_TC)==FALSE);
 }
 
 void Process_Frame(UCS_Context* ctx, UCS_Frame* frame_RX)
@@ -314,7 +291,7 @@ UCS_Answer read_button_status(GPIO_Pin_TypeDef button_pin)
         break;
 
     default:
-        /* mantÃ©m NAK */
+        /* mantém NAK */
         break;
     }
 
@@ -329,14 +306,10 @@ UCS_Answer set_led_state(GPIO_Pin_TypeDef led_pin, const uint8_t* data)
     answer_packet.answer   = NAK;
     answer_packet.data_len = 0U;
 
-    if (data == 0) {
-        return answer_packet; // seguranÃ§a, se passar NULL
-    }
-
     state = data[0];
 
     if (state > 1U) {
-        return answer_packet; // NAK, valor invÃ¡lido
+        return answer_packet;
     }
 
     switch (led_pin) {
@@ -351,7 +324,6 @@ UCS_Answer set_led_state(GPIO_Pin_TypeDef led_pin, const uint8_t* data)
         break;
 
     default:
-        // continua NAK
         break;
     }
 
@@ -364,7 +336,7 @@ UCS_Answer blink_led(GPIO_Pin_TypeDef led_pin, const uint8_t* data)
     uint8_t times;
     uint8_t delay_val;
     uint16_t i;
-    uint16_t j,d;
+    uint16_t j;
 
     answer_packet.answer   = NAK;
     answer_packet.data_len = 0U;
@@ -386,14 +358,12 @@ UCS_Answer blink_led(GPIO_Pin_TypeDef led_pin, const uint8_t* data)
 
     for (i = 0U; i < times; i++) {
         GPIO_WriteLow(GPIOE, led_pin); /* ON */
-        for (d = 0U; d < 10000U; d++) {
-            /* no-op */
+        for (j = 0U; j < (uint16_t)delay_val * 1000U; j++) {
+            /* delay tosco */
         }
-        GPIO_WriteHigh(GPIOE, led_pin); /* OFF/ */
-        for (d = 0U; d < 10000U; d++) {
-            /* no-op */
+        GPIO_WriteHigh(GPIOE, led_pin); /* OFF */
+        for (j = 0U; j < (uint16_t)delay_val * 1000U; j++) {
         }
-
     }
 
     answer_packet.answer = ACK;
@@ -415,7 +385,7 @@ UCS_Answer write_display(const uint8_t* data, uint8_t data_len)
 
     LCD_clear_home();
 
-    pos = data[0]; /* posiÃ§Ã£o inicial no display */
+    pos = data[0]; /* posição inicial no display */
 
     LCD_send(pos, CMD);
     for (i = 1U; i < data_len; i++) {
